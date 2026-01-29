@@ -5,7 +5,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
-        /* ปรับพื้นหลังเนื้อหาให้ดูแพง ไม่ทับเมนูซ้าย */
         .dashboard-wrapper {
             font-family: 'Kanit', sans-serif;
             background-color: #f8f9fa;
@@ -13,7 +12,6 @@
             padding: 2rem;
         }
 
-        /* Card ดีไซน์ทันสมัยแบบ Solid */
         .stat-card {
             background: #ffffff;
             border: none;
@@ -37,7 +35,6 @@
             margin: 0.5rem 0;
         }
 
-        /* ตาราง Modern Solid */
         .table-container {
             background: #ffffff;
             border-radius: 12px;
@@ -80,15 +77,30 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            text-decoration: none;
         }
 
-        /* Badge สถานะ */
         .badge-new {
             background: #dcfce7;
             color: #166534;
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
             font-size: 0.8rem;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .dashboard-wrapper {
+                padding: 0 !important;
+                background: white !important;
+            }
+            .stat-card, .table-container {
+                box-shadow: none !important;
+                border: 1px solid #eee !important;
+                page-break-inside: avoid;
+            }
         }
     </style>
 
@@ -102,9 +114,9 @@
                 <button onclick="location.reload()" class="btn btn-outline-dark btn-action">
                     <i class="bi bi-arrow-clockwise"></i> รีเฟรชข้อมูล
                 </button>
-                <button onclick="window.print()" class="btn btn-dark btn-action ms-2">
-                    <i class="bi bi-printer"></i> ออกรายงาน PDF
-                </button>
+                <a href="{{ route('chart.pdf') }}" class="btn btn-dark btn-action ms-2">
+                    <i class="bi bi-file-pdf"></i> Print PDF
+                </a>
             </div>
         </div>
 
@@ -142,7 +154,7 @@
 
         <div class="row mt-5">
             <div class="col-12">
-                <h4 class="fw-bold mb-4">รายชื่อสมาชิกทั้งหมด (เรียงลำดับใหม่ไปเก่า)</h4>
+                <h4 class="fw-bold mb-4">รายชื่อสมาชิกทั้งหมด</h4>
                 <div class="table-container">
                     <table class="modern-table">
                         <thead>
@@ -157,22 +169,23 @@
                         <tbody>
                             @foreach ($allUsers as $index => $user)
                                 <tr>
-                                    <td class="text-center">{{ $index + 1 }}</td>
+                                    <td class="text-center">{{ ($allUsers->currentPage() - 1) * $allUsers->perPage() + $index + 1 }}</td>
                                     <td class="fw-bold">{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
-
-                                    <td class="align-middle">
-                                        <div class="fw-bold" style="font-size: 1.1rem; color: #1e293b;">
-                                            {{ $user->created_at->format('d/m/Y') }}
-                                        </div>
-                                        <div class="text-primary fw-semibold small">
-                                            เวลา {{ $user->created_at->format('H:i:s') }} น.
-                                        </div>
+                                    <td>{{ $user->created_at->format('d/m/Y') }}</td>
+                                    <td>
+                                        <span class="text-primary fw-semibold">
+                                            {{ $user->created_at->format('H:i:s') }} น.
+                                        </span>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+                
+                <div class="mt-4 no-print d-flex justify-content-center">
+                    {{ $allUsers->links() }}
                 </div>
             </div>
         </div>
@@ -184,33 +197,22 @@
         Highcharts.chart('modernChart', {
             chart: {
                 type: 'area',
-                style: {
-                    fontFamily: 'Kanit'
-                },
+                style: { fontFamily: 'Kanit' },
                 backgroundColor: 'transparent'
             },
-            title: {
-                text: null
-            },
+            title: { text: null },
             xAxis: {
                 categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 gridLineWidth: 0
             },
             yAxis: {
-                title: {
-                    text: null
-                },
+                title: { text: null },
                 gridLineColor: '#f1f5f9'
             },
             plotOptions: {
                 area: {
                     fillColor: {
-                        linearGradient: {
-                            x1: 0,
-                            y1: 0,
-                            x2: 0,
-                            y2: 1
-                        },
+                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
                         stops: [
                             [0, 'rgba(13, 110, 253, 0.2)'],
                             [1, 'rgba(13, 110, 253, 0)']
@@ -230,9 +232,7 @@
                 name: 'สมัครสมาชิก',
                 data: userData
             }],
-            credits: {
-                enabled: false
-            }
+            credits: { enabled: false }
         });
     </script>
 @endsection

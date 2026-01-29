@@ -6,281 +6,196 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - LMS System</title>
 
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- AdminLTE CSS -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
         :root {
-            --primary-color: #1f2937;
-            --secondary-color: #374151;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --sidebar-bg: #1e293b;
+            --sidebar-hover: #334155;
+            --accent-color: #3b82f6;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f3f4f6;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
         }
 
-        .wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
-
+        /* Sidebar Styling */
         .sidebar {
-            width: 250px;
-            background: var(--primary-color);
+            width: 260px;
+            background: var(--sidebar-bg);
             color: white;
-            padding: 20px;
             position: fixed;
             height: 100vh;
-            overflow-y: auto;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            z-index: 1000;
         }
 
         .sidebar-logo {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 25px;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: rgba(0,0,0,0.1);
         }
 
         .nav-link {
-            color: #d1d5db;
-            text-decoration: none;
-            padding: 12px 15px;
+            color: #94a3b8;
+            padding: 12px 25px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            transition: all 0.3s;
+            gap: 12px;
+            transition: 0.2s;
+            border-left: 4px solid transparent;
         }
 
         .nav-link:hover {
-            background: var(--secondary-color);
+            background: var(--sidebar-hover);
             color: white;
         }
 
         .nav-link.active {
-            background: #3b82f6;
-            color: white;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-color);
+            border-left-color: var(--accent-color);
+            font-weight: 600;
         }
 
-        .main-content {
-            margin-left: 250px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .navbar {
+        /* Top Navbar */
+        .main-content { margin-left: 260px; min-height: 100vh; }
+        
+        .top-navbar {
             background: white;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 1rem 2rem;
+            height: 70px;
+            padding: 0 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 999;
         }
 
-        .navbar-brand {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .navbar-user {
+        .user-dropdown-btn {
+            background: none;
+            border: none;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            padding: 5px 10px;
+            border-radius: 50px;
+            transition: 0.2s;
         }
+
+        .user-dropdown-btn:hover { background: #f1f5f9; }
 
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
-            background: #3b82f6;
+            object-fit: cover;
+            border: 2px solid #e2e8f0;
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 200px;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .content {
-            padding: 2rem;
-            flex: 1;
-        }
-
-        .card {
-            border: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            border-radius: 8px;
-        }
-
-        .card-header {
-            background: white;
-            border-bottom: 2px solid #e5e7eb;
-            padding: 15px 20px;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .btn-primary {
-            background: #3b82f6;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .btn-primary:hover {
-            background: #2563eb;
-        }
-
-        .table {
-            background: white;
-            border-radius: 8px;
-        }
-
-        .table thead {
-            background: #f3f4f6;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #3b82f6;
-        }
-
-        .stat-label {
-            color: #6b7280;
+            gap: 10px;
             font-size: 14px;
-            margin-top: 5px;
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .content {
-                padding: 1rem;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
         }
     </style>
-
-    @yield('styles')
 </head>
 <body>
     <div class="wrapper">
-        <!-- Sidebar -->
         <div class="sidebar">
-            <div class="sidebar-logo">
-                <i class="fas fa-graduation-cap"></i> LMS
+            <div class="sidebar-logo d-flex align-items-center gap-2 text-white">
+                <div class="bg-primary p-2 rounded-3">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <span>LMS Pro</span>
             </div>
 
-            <nav>
+            <nav class="mt-3">
                 <a href="{{ route('dashboard') }}" class="nav-link @if(Route::is('dashboard')) active @endif">
-                    <i class="fas fa-home"></i> Dashboard
+                    <i class="fas fa-th-large"></i> Dashboard
                 </a>
                 <a href="{{ route('students.index') }}" class="nav-link @if(Route::is('students.*')) active @endif">
                     <i class="fas fa-user-graduate"></i> Students
                 </a>
                 <a href="{{ route('teachers.index') }}" class="nav-link @if(Route::is('teachers.*')) active @endif">
-                    <i class="fas fa-chalkboard-user"></i> Teachers
+                    <i class="fas fa-chalkboard-teacher"></i> Teachers
                 </a>
                 <a href="{{ route('profiles.index') }}" class="nav-link @if(Route::is('profiles.*')) active @endif">
-                    <i class="fas fa-address-card"></i> Profiles
+                    <i class="fas fa-id-card"></i> Profiles
                 </a>
                 <a href="{{ route('chart.index') }}" class="nav-link @if(Route::is('chart.index')) active @endif">
-                    <i class="fas fa-chart-line"></i> User Growth Chart
+                    <i class="fas fa-chart-pie"></i> Growth Chart
                 </a>
-
-                <hr style="border-color: #4b5563; margin: 20px 0;">
-
-                <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
             </nav>
         </div>
 
-        <!-- Main Content -->
         <div class="main-content">
-            <!-- Navbar -->
-            <div class="navbar">
-                <div class="navbar-brand">@yield('breadcrumb', 'Dashboard')</div>
-                <div class="navbar-user">
-                    <span>Welcome, {{ auth()->user()->name ?? 'User' }}</span>
-                    <div class="user-avatar">{{ substr(auth()->user()->name ?? 'U', 0, 1) }}</div>
+            <header class="top-navbar">
+                <div class="fw-bold text-secondary text-uppercase small">
+                    <i class="fas fa-chevron-right me-2 text-primary"></i>@yield('breadcrumb', 'Overview')
                 </div>
-            </div>
 
-            <!-- Content -->
-            <div class="content">
-                @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <strong>Error!</strong>
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
+                <div class="dropdown">
+                    <button class="user-dropdown-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <div class="text-end d-none d-sm-block">
+                            <div class="fw-bold small text-dark" style="line-height: 1">{{ auth()->user()->name }}</div>
+                            <span class="text-muted" style="font-size: 10px;">Administrator</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0D6EFD&color=fff" class="user-avatar">
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><h6 class="dropdown-header">Manage Account</h6></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle text-muted"></i> Profile Settings</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-shield-alt text-muted"></i> Security</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </header>
 
+            <main class="p-4">
                 @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center">
+                        <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
                     </div>
                 @endif
 
                 @yield('content')
-            </div>
+            </main>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @yield('scripts')
 </body>
 </html>

@@ -9,7 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ChartController;
-
+use App\Http\Controllers\PDFController;
 
 
 
@@ -38,7 +38,6 @@ Route::middleware('guest')->group(function () {
     Route::post("login/authenticate", [AuthenController::class, "authenticate"])->name('login.authenticate');
     Route::get('/register', [AuthenController::class, 'register'])->name('register');
     Route::post("register", [AuthenController::class, "store"])->name('register.authenticate');
-    
 });
 
 Route::middleware('auth')->group(function () {
@@ -47,10 +46,17 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     // Chart
-        Route::get('chart', [ChartController::class, 'index'])->name('chart.index'); 
+    Route::get('chart', [ChartController::class, 'index'])->name('chart.index');
     // Resources
     Route::resource('/students', StudentController::class);
     Route::resource('/teachers', TeacherController::class);
     Route::resource('/profiles', ProfileController::class);
-    
+
+    // PDF Routes
+    // 1. วางตัวนี้ก่อน
+    Route::get('/teachers/export/pdf', [App\Http\Controllers\TeacherController::class, 'exportPDF'])->name('teachers.pdf');
+    Route::get('/chart/pdf', [App\Http\Controllers\ChartController::class, 'exportPDF'])->name('chart.pdf');
+
+    // 2. ตามด้วย Resource
+    Route::resource('teachers', App\Http\Controllers\TeacherController::class);
 });

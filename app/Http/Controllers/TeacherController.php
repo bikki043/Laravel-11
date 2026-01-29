@@ -4,78 +4,115 @@ namespace App\Http\Controllers;
 
 use App\Models\Teacher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class TeacherController extends Controller
 {
-    /**
-     * Display a listing of teachers.
-     */
     public function index()
     {
-        $teachers = Teacher::with('user')->paginate(10);
+        // ปรับให้ดึงข้อมูลธรรมดา (ถ้าไม่ได้เชื่อม User) หรือใช้ paginate ตามเดิม
+        $teachers = Teacher::latest()->paginate(10);
         return view('teachers.index', compact('teachers'));
     }
 
-    /**
-     * Show the form for creating a new teacher.
-     */
     public function create()
     {
         return view('teachers.create');
     }
 
-    /**
-     * Store a newly created teacher in storage.
-     */
     public function store(Request $request)
     {
+        // 1. แก้ไข Validation: เอา student_id ออก และเพิ่ม email กับ image
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'student_id' => 'required|string',
+            'email' => 'required|email|unique:teachers,email', // ตรวจสอบอีเมลไม่ให้ซ้ำ
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        // 2. จัดการเรื่องรูปภาพ (ถ้ามีการอัปโหลด)
+        if ($request->hasFile('image')) {
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->move(public_path('images'), $imageName);
+            $validated['image'] = $imageName;
+        }
 
         Teacher::create($validated);
 
-        return redirect()->route('teachers.index')->with('success', 'Teacher created successfully.');
+        return redirect()->route('teachers.index')->with('success', 'เพิ่มข้อมูลอาจารย์เรียบร้อยแล้ว');
     }
 
-    /**
-     * Display the specified teacher.
-     */
     public function show(Teacher $teacher)
     {
         return view('teachers.show', compact('teacher'));
     }
 
-    /**
-     * Show the form for editing the specified teacher.
-     */
+
+
     public function edit(Teacher $teacher)
     {
         return view('teachers.edit', compact('teacher'));
     }
 
-    /**
-     * Update the specified teacher in storage.
-     */
     public function update(Request $request, Teacher $teacher)
     {
+        // 1. แก้ไข Validation เหมือนตอน store (ยกเว้นเรื่องอีเมลซ้ำของตัวเอง)
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'student_id' => 'required|string',
+            'email' => 'required|email|unique:teachers,email,' . $teacher->id,
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        // 2. จัดการรูปภาพใหม่
+        if ($request->hasFile('image')) {
+            // ลบรูปเก่า (ถ้ามี)
+            if ($teacher->image && File::exists(public_path('images/' . $teacher->image))) {
+                File::delete(public_path('images/' . $teacher->image));
+            }
+
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->move(public_path('images'), $imageName);
+            $validated['image'] = $imageName;
+        }
 
         $teacher->update($validated);
 
-        return redirect()->route('teachers.show', $teacher)->with('success', 'Teacher updated successfully.');
+        return redirect()->route('teachers.show', $teacher)->with('success', 'อัปเดตข้อมูลเรียบร้อยแล้ว');
     }
 
-    /**
-     * Remove the specified teacher from storage.
-     */
     public function destroy(Teacher $teacher)
     {
+        // ลบรูปภาพออกจากโฟลเดอร์ก่อนลบข้อมูลใน DB
+        if ($teacher->image && File::exists(public_path('images/' . $teacher->image))) {
+            File::delete(public_path('images/' . $teacher->image));
+        }
+
         $teacher->delete();
-        return redirect()->route('teachers.index')->with('success', 'Teacher deleted successfully.');
+        return redirect()->route('teachers.index')->with('success', 'ลบข้อมูลอาจารย์เรียบร้อยแล้ว');
     }
+
+    public function exportPDF()
+{
+    // 1. ดึงข้อมูลครูทั้งหมด
+    $teachers = Teacher::all();
+
+    // 2. สร้าง Array ข้อมูลสำหรับส่งไปที่ Blade (ต้องมี title และ date ตามที่เขียนใน Blade)
+    $data = [
+        'title' => 'รายงานรายชื่อบุคลากร (LMS System)',
+        'date'  => date('d/m/Y H:i'),
+        'teachers' => $teachers
+    ];
+
+    // 3. โหลด View และส่ง $data ไปแทน compact('teachers')
+    $pdf = Pdf::loadView('teachers.pdf', $data)
+        ->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'THSarabunNew', 
+            'chroot' => public_path(), 
+        ]);
+
+    return $pdf->stream('teacher-report.pdf');
+}
 }
