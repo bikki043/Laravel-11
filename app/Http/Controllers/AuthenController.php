@@ -31,7 +31,7 @@ class AuthenController extends Controller
         ]);
 
         Auth::login($user);
-        return redirect()->route('home');
+        return redirect()->route('dashboard');
     }
 
     ///login 
@@ -51,7 +51,7 @@ class AuthenController extends Controller
             Session::flash('error', 'Credential does not match!');
             return Redirect::back();
         } else {
-            return redirect()->route('home');
+            return redirect()->route('dashboard');
         }
     }
     public function logout()

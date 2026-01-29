@@ -2,7 +2,7 @@
 @include('layouts.navbar')
 @section('content')
     <div class="card mt-5">
-        <h2 class ="card-header">Bikky Image Profile</h2>
+        <h2 class ="card-header">ผู้ดูเเลระบบ</h2>
         <div class ="card-body">
             @session('sussess')
                 <div class="alert alert-success" role="alert">{{ session('sussess') }}</div>
