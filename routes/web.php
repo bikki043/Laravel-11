@@ -9,30 +9,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ChartController;
-use App\Http\Controllers\PDFController;
 
-
-
+// --- Public Routes ---
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/home', function () {
-    return view('home');
-});
-
-Route::controller(PostController::class)->group(function () {
-    Route::get('main', 'index');
-    Route::get('create', 'create');
-});
-
-Route::controller(JoinController::class)->group(function () {
-    Route::get('left-join', 'LeftJoin');
-    Route::get('right-join', 'RightJoin');
-    Route::get('inner-join', 'InnerJoin');
-    Route::get('full-outer-join', 'FullOuterJoin');
-});
-
+// --- Guest Only (Login/Register) ---
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenController::class, 'login'])->name('login');
     Route::post("login/authenticate", [AuthenController::class, "authenticate"])->name('login.authenticate');
@@ -40,23 +23,36 @@ Route::middleware('guest')->group(function () {
     Route::post("register", [AuthenController::class, "store"])->name('register.authenticate');
 });
 
+// --- Protected Routes (Must be Logged In) ---
 Route::middleware('auth')->group(function () {
+    
     Route::view('/home', 'home')->name('home');
     Route::any('/logout', [AuthenController::class, 'logout'])->name('logout');
-    // Dashboard
+    
+    // Dashboard & Analytics
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    // Chart
     Route::get('chart', [ChartController::class, 'index'])->name('chart.index');
-    // Resources
-    Route::resource('/students', StudentController::class);
-    Route::resource('/teachers', TeacherController::class);
-    Route::resource('/profiles', ProfileController::class);
 
-    // PDF Routes
-    // 1. วางตัวนี้ก่อน
-    Route::get('/teachers/export/pdf', [App\Http\Controllers\TeacherController::class, 'exportPDF'])->name('teachers.pdf');
-    Route::get('/chart/pdf', [App\Http\Controllers\ChartController::class, 'exportPDF'])->name('chart.pdf');
+    // --- PDF Export Routes (ต้องวางก่อน Resource) ---
+    Route::get('students/export-pdf', [StudentController::class, 'exportPDF'])->name('students.pdf');
+    Route::get('teachers/export-pdf', [TeacherController::class, 'exportPDF'])->name('teachers.export-pdf');
+    Route::get('chart/pdf', [ChartController::class, 'exportPDF'])->name('chart.pdf');
 
-    // 2. ตามด้วย Resource
-    Route::resource('teachers', App\Http\Controllers\TeacherController::class);
+    // --- Resource Routes ---
+    Route::resource('students', StudentController::class);
+    Route::resource('teachers', TeacherController::class);
+    Route::resource('profiles', ProfileController::class);
+
+    // --- Other Controllers ---
+    Route::controller(PostController::class)->group(function () {
+        Route::get('main', 'index');
+        Route::get('create', 'create');
+    });
+
+    Route::controller(JoinController::class)->group(function () {
+        Route::get('left-join', 'LeftJoin');
+        Route::get('right-join', 'RightJoin');
+        Route::get('inner-join', 'InnerJoin');
+        Route::get('full-outer-join', 'FullOuterJoin');
+    });
 });

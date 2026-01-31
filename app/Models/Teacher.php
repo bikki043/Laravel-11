@@ -10,12 +10,19 @@ class Teacher extends Model
     use HasFactory;
 
     protected $fillable = [
+        'teacher_id',
         'name',
         'email',
-        'image',
-        'user_id',
+        'position',
+        'department',
+        'subject',
+        'education_level',
+        'start_date',
+        'phone',
+        'address',
+        'motto',
+        'image', // เพิ่ม , ตรงนี้
     ];
-
     /**
      * Get the user that owns the teacher.
      */

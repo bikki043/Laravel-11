@@ -42,19 +42,17 @@ class ChartController extends Controller
 
     public function exportPDF()
     {
-        $users = User::orderBy('created_at', 'desc')->get();
+        // เปลี่ยนจาก desc เป็น asc เพื่อให้เรียง ID-001, 002...
+        $users = User::orderBy('id', 'asc')->get();
 
         $data = [
-            'title' => 'Member List Report',
-            'date' => date('d/m/Y H:i'),
-            'users' => $users,
+            'title'      => 'Member List',
+            'date'       => date('d/m/Y H:i'),
+            'teachers'   => $users,
             'totalUsers' => $users->count()
         ];
 
-        // ถ้าไฟล์อยู่ที่ resources/views/teachers/pdf.blade.php ให้ใช้ 'teachers.pdf'
-        // ถ้าไฟล์อยู่ที่ resources/views/pdf.blade.php ให้ใช้ 'pdf'
-        // เปลี่ยนจาก 'pdf' เป็น 'teachers.pdf'
-        return \Barryvdh\DomPDF\Facade\Pdf::loadView('teachers.pdf', $data)
+        return \Barryvdh\DomPDF\Facade\Pdf::loadView('teachers.pdf_template', $data)
             ->setOptions([
                 'defaultFont' => 'THSarabunNew',
                 'isRemoteEnabled' => true,

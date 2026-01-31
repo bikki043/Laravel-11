@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,9 +9,9 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <style>
         :root {
             --sidebar-bg: #1e293b;
@@ -21,6 +22,8 @@
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: #f8fafc;
+            overflow-x: hidden;
+            /* ป้องกันหน้าจอเลื่อนแนวนอน */
         }
 
         /* Sidebar Styling */
@@ -31,7 +34,8 @@
             position: fixed;
             height: 100vh;
             transition: all 0.3s;
-            z-index: 1000;
+            z-index: 1050;
+            /* เพิ่ม z-index ให้สูงกว่า Navbar */
         }
 
         .sidebar-logo {
@@ -39,7 +43,7 @@
             font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.5px;
-            background: rgba(0,0,0,0.1);
+            background: rgba(0, 0, 0, 0.1);
         }
 
         .nav-link {
@@ -64,9 +68,13 @@
             font-weight: 600;
         }
 
-        /* Top Navbar */
-        .main-content { margin-left: 260px; min-height: 100vh; }
-        
+        /* Content Adjustment */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
         .top-navbar {
             background: white;
             height: 70px;
@@ -80,6 +88,37 @@
             z-index: 999;
         }
 
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -260px;
+                /* ซ่อน Sidebar ไว้ทางซ้าย */
+            }
+
+            .sidebar.active {
+                margin-left: 0;
+                /* แสดง Sidebar เมื่อใส่คลาส active */
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            /* พื้นหลังดำเมื่อเมนูเปิด (Overlay) */
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+
         .user-dropdown-btn {
             background: none;
             border: none;
@@ -91,7 +130,9 @@
             transition: 0.2s;
         }
 
-        .user-dropdown-btn:hover { background: #f1f5f9; }
+        .user-dropdown-btn:hover {
+            background: #f1f5f9;
+        }
 
         .user-avatar {
             width: 38px;
@@ -100,33 +141,16 @@
             object-fit: cover;
             border: 2px solid #e2e8f0;
         }
-
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            border-radius: 12px;
-            padding: 8px;
-            min-width: 200px;
-        }
-
-        .dropdown-item {
-            padding: 10px 15px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .main-content { margin-left: 0; }
-        }
     </style>
 </head>
+
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <div class="wrapper">
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="sidebar-logo d-flex align-items-center gap-2 text-white">
                 <div class="bg-primary p-2 rounded-3">
                     <i class="fas fa-graduation-cap"></i>
@@ -135,19 +159,22 @@
             </div>
 
             <nav class="mt-3">
-                <a href="{{ route('dashboard') }}" class="nav-link @if(Route::is('dashboard')) active @endif">
+                <a href="{{ route('dashboard') }}" class="nav-link @if (Route::is('dashboard')) active @endif">
                     <i class="fas fa-th-large"></i> Dashboard
                 </a>
-                <a href="{{ route('students.index') }}" class="nav-link @if(Route::is('students.*')) active @endif">
+                <a href="{{ route('students.index') }}"
+                    class="nav-link @if (Route::is('students.*')) active @endif">
                     <i class="fas fa-user-graduate"></i> Students
                 </a>
-                <a href="{{ route('teachers.index') }}" class="nav-link @if(Route::is('teachers.*')) active @endif">
+                <a href="{{ route('teachers.index') }}"
+                    class="nav-link @if (Route::is('teachers.*')) active @endif">
                     <i class="fas fa-chalkboard-teacher"></i> Teachers
                 </a>
-                <a href="{{ route('profiles.index') }}" class="nav-link @if(Route::is('profiles.*')) active @endif">
+                <a href="{{ route('profiles.index') }}"
+                    class="nav-link @if (Route::is('profiles.*')) active @endif">
                     <i class="fas fa-id-card"></i> Profiles
                 </a>
-                <a href="{{ route('chart.index') }}" class="nav-link @if(Route::is('chart.index')) active @endif">
+                <a href="{{ route('chart.index') }}" class="nav-link @if (Route::is('chart.index')) active @endif">
                     <i class="fas fa-chart-pie"></i> Growth Chart
                 </a>
             </nav>
@@ -155,8 +182,14 @@
 
         <div class="main-content">
             <header class="top-navbar">
-                <div class="fw-bold text-secondary text-uppercase small">
-                    <i class="fas fa-chevron-right me-2 text-primary"></i>@yield('breadcrumb', 'Overview')
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-light d-md-none rounded-circle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+
+                    <div class="fw-bold text-secondary text-uppercase small d-none d-sm-block">
+                        <i class="fas fa-chevron-right me-2 text-primary"></i>@yield('breadcrumb', 'Overview')
+                    </div>
                 </div>
 
                 <div class="dropdown">
@@ -165,15 +198,23 @@
                             <div class="fw-bold small text-dark" style="line-height: 1">{{ auth()->user()->name }}</div>
                             <span class="text-muted" style="font-size: 10px;">Administrator</span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0D6EFD&color=fff" class="user-avatar">
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0D6EFD&color=fff"
+                            class="user-avatar">
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li><h6 class="dropdown-header">Manage Account</h6></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle text-muted"></i> Profile Settings</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-shield-alt text-muted"></i> Security</a></li>
-                        <li><hr class="dropdown-divider"></li>
                         <li>
-                            <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <h6 class="dropdown-header">Manage Account</h6>
+                        </li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle text-muted"></i>
+                                Profile Settings</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-shield-alt text-muted"></i>
+                                Security</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 <i class="fas fa-sign-out-alt"></i> Logout
                             </a>
                         </li>
@@ -196,6 +237,24 @@
     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        });
+    </script>
+
     @yield('scripts')
 </body>
+
 </html>

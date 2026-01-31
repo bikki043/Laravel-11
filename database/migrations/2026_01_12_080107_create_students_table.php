@@ -9,14 +9,26 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    // database/migrations/xxxx_xx_xx_create_students_table.php
+    public function up()
     {
         Schema::create('students', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->string('email');
-        $table->string('image')->nullable(); // วางต่อกันแบบนี้ได้เลย ไม่ต้องมี after
-        $table->timestamps();
+            $table->id();
+            $table->string('student_id')->unique(); // รหัสนักเรียน STU001
+            $table->string('name');
+            $table->string('nickname')->nullable();
+            $table->string('email')->unique();
+            $table->date('birth_date');             // วันเกิด
+            $table->enum('gender', ['male', 'female', 'other']); // เพศ
+            $table->string('classroom');            // ชั้นเรียน ม.1/1
+            $table->string('blood_group')->nullable();
+            $table->text('congenital_disease')->nullable(); // โรคประจำตัว
+            $table->text('allergy')->nullable();            // ประวัติการแพ้
+            $table->string('parent_name');
+            $table->string('parent_phone');
+            $table->text('address');
+            $table->string('image')->nullable();
+            $table->timestamps();
         });
     }
 

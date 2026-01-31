@@ -1,117 +1,189 @@
 @extends('layouts.app')
 
-@section('title', 'รายชื่อนักเรียน')
+@section('title', 'จัดการข้อมูลนักศึกษา')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-header bg-white py-3 border-0 mt-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h4 class="fw-bold text-dark mb-0">รายชื่อนักเรียน</h4>
-                    <p class="text-muted small mb-0">จัดการข้อมูลนักเรียนในระบบ</p>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    body { font-family: 'Prompt', sans-serif; background-color: #f4f7fe; color: #2d3748; }
+    
+    .mini-stat {
+        background: white; padding: 10px 20px; border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0;
+    }
+
+    .btn-action {
+        border-radius: 12px; padding: 8px 18px; font-weight: 600;
+        transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    
+    .table-container {
+        background: white; border-radius: 20px; border: none;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.02); overflow: hidden;
+    }
+    .student-row { transition: 0.3s; border-bottom: 1px solid #f8fafc; }
+    .student-row:hover { background-color: #f8faff !important; }
+
+    .search-wrapper {
+        background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+        padding: 4px 12px; transition: 0.3s;
+    }
+    .search-wrapper:focus-within { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+    
+    /* แก้ไขปุ่มเครื่องมือไม่ให้กะพริบ */
+    .tool-btn {
+        width: 35px; height: 35px; display: inline-flex; align-items: center; 
+        justify-content: center; border-radius: 10px; transition: 0.2s;
+        border: 1px solid #edf2f7; background: white;
+    }
+    .tool-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+</style>
+
+<div class="container py-4">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3" data-aos="fade-down">
+        <div>
+            <h3 class="fw-bold mb-1">ทะเบียนนักศึกษา</h3>
+            <div class="d-flex align-items-center gap-3">
+                <span class="mini-stat small text-muted">
+                    <i class="fas fa-users text-primary me-1"></i> ทั้งหมด <strong>{{ $students->total() }}</strong> คน
+                </span>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <a href="{{ route('students.pdf') }}" class="btn btn-action btn-outline-danger bg-white shadow-sm">
+                <i class="fas fa-file-pdf"></i> พิมพ์ PDF
+            </a>
+            <a href="{{ route('students.create') }}" class="btn btn-action btn-primary border-0 shadow-sm" style="background: #4f46e5;">
+                <i class="fas fa-plus-circle"></i> เพิ่มนักศึกษา
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="col-md-12">
+            <form action="{{ route('students.index') }}" method="GET" class="d-flex gap-2">
+                <div class="search-wrapper d-flex align-items-center flex-grow-1">
+                    <i class="fas fa-search text-muted me-2"></i>
+                    <input type="text" name="search" class="form-control border-0 shadow-none" 
+                           placeholder="ค้นหารหัส, ชื่อ, ชั้นเรียน หรือชื่อผู้ปกครอง..." value="{{ request('search') }}">
+                    @if(request('search'))
+                        <a href="{{ route('students.index') }}" class="text-muted"><i class="fas fa-times-circle"></i></a>
+                    @endif
                 </div>
-                <a href="{{ route('students.create') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                    <i class="fas fa-plus me-1"></i> เพิ่มข้อมูลนักเรียน
-                </a>
-            </div>
+                <button type="submit" class="btn btn-dark px-4 rounded-3 shadow-sm">ค้นหา</button>
+            </form>
         </div>
+    </div>
 
-        <div class="card-body px-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4 border-0">ชื่อ-นามสกุล</th>
-                            <th class="border-0">รหัสนักเรียน</th>
-                            <th class="border-0">อีเมลติดต่อ</th>
-                            <th class="border-0">วันเข้าสู่ระบบ</th>
-                            <th class="text-end pe-4 border-0">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($students as $student)
-                            <tr>
-                                <td class="ps-4">
-                                    <div class="d-flex align-items-center">
-                                        @if($student->image)
-                                            <img src="{{ asset('images/' . $student->image) }}" class="rounded-circle me-3 border" style="width: 45px; height: 45px; object-fit: cover;">
-                                        @else
-                                            <img src="https://ui-avatars.com/api/?name={{ urlencode($student->name) }}&background=1e293b&color=fff&size=100" class="rounded-circle me-3" style="width: 45px; height: 45px;">
-                                        @endif
-                                        <div>
-                                            <div class="fw-bold text-dark">{{ $student->name }}</div>
-                                            <small class="text-muted">นักเรียน</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border px-2 py-1">
-                                        S-{{ str_pad($student->id, 4, '0', STR_PAD_LEFT) }}
-                                    </span>
-                                </td>
-                                <td>{{ $student->email }}</td>
-                                <td>
-                                    <div class="text-dark">{{ $student->created_at->format('d/m/Y') }}</div>
-                                    <small class="text-muted text-xs">{{ $student->created_at->diffForHumans() }}</small>
-                                </td>
-                                <td class="text-end pe-4">
-                                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                        <a href="{{ route('students.show', $student) }}" class="btn btn-white btn-sm px-3 border-end" title="ดูรายละเอียด">
-                                            <i class="fas fa-eye text-info"></i>
-                                        </a>
-                                        <a href="{{ route('students.edit', $student) }}" class="btn btn-white btn-sm px-3 border-end" title="แก้ไข">
-                                            <i class="fas fa-edit text-warning"></i>
-                                        </a>
-                                        <form action="{{ route('students.destroy', $student) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-white btn-sm px-3" onclick="return confirm('ยืนยันการลบข้อมูลนักเรียนท่านนี้หรือไม่?')" title="ลบ">
-                                                <i class="fas fa-trash text-danger"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80" class="opacity-25 mb-3">
-                                    <p class="text-muted fw-bold">ไม่พบข้อมูลนักเรียนในระบบ</p>
-                                    <a href="{{ route('students.create') }}" class="btn btn-outline-primary btn-sm rounded-pill">เพิ่มนักเรียนคนแรกเลย</a>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+    <div class="table-container shadow-sm" data-aos="fade-up" data-aos-delay="200">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light text-muted small uppercase fw-bold">
+                    <tr>
+                        <th class="ps-4 py-3">ข้อมูลนักศึกษา</th>
+                        <th class="text-center">รหัสนักศึกษา</th>
+                        <th class="text-center">ชั้นเรียน</th>
+                        <th>ผู้ปกครอง / เบอร์ติดต่อ</th> <th class="pe-4 text-end">เครื่องมือ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($students as $student)
+                    <tr class="student-row">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ $student->image ? asset('images/' . $student->image) : 'https://ui-avatars.com/api/?name='.urlencode($student->name).'&background=4f46e5&color=fff' }}" 
+                                     class="rounded-3 me-3 border" style="width: 45px; height: 45px; object-fit: cover;">
+                                <div>
+                                    <div class="fw-bold text-dark">{{ $student->name }}</div>
+                                    <div class="small text-muted">{{ $student->email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border px-2 py-1 fw-normal">{{ $student->student_id }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill" style="background: #eef2ff; color: #4f46e5; padding: 6px 12px;">{{ $student->classroom }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-bold small text-dark">{{ $student->parent_name }}</div>
+                            <div class="small text-muted"><i class="fas fa-phone-alt text-success me-1"></i> {{ $student->parent_phone }}</div>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <div class="d-flex justify-content-end gap-1">
+                                <a href="{{ route('students.show', $student) }}" class="tool-btn text-primary" title="ดูรายละเอียด">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('students.edit', $student) }}" class="tool-btn text-warning" title="แก้ไข">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" onclick="confirmDelete('{{ $student->id }}', '{{ $student->name }}')" class="tool-btn text-danger" title="ลบข้อมูล">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <form id="del-{{ $student->id }}" action="{{ route('students.destroy', $student) }}" method="POST" class="d-none">
+                                @csrf @method('DELETE')
+                            </form>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-light mb-3"></i>
+                            <div class="text-muted">ไม่พบข้อมูลที่คุณค้นหาในขณะนี้</div>
+                            <a href="{{ route('students.index') }}" class="btn btn-sm btn-link">ล้างคำค้นหา</a>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-
+        
         @if($students->hasPages())
-        <div class="card-footer bg-white border-0 py-3">
-            {{ $students->links() }}
+        <div class="p-3 border-top d-flex justify-content-center bg-light-subtle">
+            {{ $students->appends(request()->query())->links() }}
         </div>
         @endif
     </div>
 </div>
 
-<style>
-    .table thead th {
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        color: #64748b;
-        padding: 1.25rem 1rem;
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>
+    AOS.init({ duration: 600, once: true });
+
+    function confirmDelete(id, name) {
+        Swal.fire({
+            title: 'ยืนยันการลบข้อมูล?',
+            text: "คุณกำลังจะลบข้อมูลของ " + name + " ข้อมูลนี้จะไม่สามารถกู้คืนได้!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#f43f5e',
+            confirmButtonText: 'ยืนยัน, ลบเลย!',
+            cancelButtonText: 'ยกเลิก',
+            borderRadius: '15px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('del-' + id).submit();
+            }
+        });
     }
-    .btn-white {
-        background-color: #fff;
-        border: 1px solid #e2e8f0;
-    }
-    .btn-white:hover {
-        background-color: #f8fafc;
-    }
-    .text-xs { font-size: 0.75rem; }
-    .table-hover tbody tr:hover { background-color: #fcfdfe; }
-</style>
+
+    @if(session('success'))
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: '{{ session("success") }}',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+    @endif
+</script>
 @endsection

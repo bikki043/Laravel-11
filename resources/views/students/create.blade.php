@@ -1,110 +1,165 @@
 @extends('layouts.app')
 
-@section('title', 'เพิ่มข้อมูลนักเรียนใหม่')
+@section('title', 'ลงทะเบียนนักเรียนใหม่')
 
 @section('content')
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Prompt', sans-serif; background-color: #f1f5f9; }
+    .form-card { border: none; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; }
+    .form-header { background: #4f46e5; color: white; padding: 30px; }
+    .input-group-text { background: #f8fafc; border-right: none; color: #64748b; border-radius: 12px 0 0 12px; }
+    .form-control, .form-select { border-left: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; border-color: #e2e8f0; }
+    .form-control:focus, .form-select:focus { box-shadow: none; border-color: #4f46e5; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; }
+    .section-title i { width: 30px; height: 30px; background: #eef2ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-right: 12px; font-size: 0.9rem; }
+    .preview-container { width: 120px; height: 120px; border-radius: 20px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+    #imagePreview img { width: 100%; height: 100%; object-fit: cover; }
+</style>
+
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="d-flex align-items-center mb-4">
-                <a href="{{ route('students.index') }}" class="btn btn-link text-decoration-none text-muted p-0 me-3">
-                    <i class="fas fa-arrow-left fa-lg"></i>
-                </a>
-                <h2 class="fw-bold text-dark mb-0">เพิ่มข้อมูลนักเรียนใหม่</h2>
-            </div>
-
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-body p-5">
-                    <form action="{{ route('students.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-
-                        <div class="text-center mb-5">
-                            <div class="position-relative d-inline-block">
-                                <div class="bg-light rounded-circle shadow-sm border d-flex align-items-center justify-content-center" 
-                                     style="width: 150px; height: 150px; overflow: hidden;" id="imagePreview">
-                                    <i class="fas fa-user-tie fa-4x text-muted"></i>
-                                </div>
-                                <label for="image" class="position-absolute bottom-0 end-0 btn btn-primary btn-sm rounded-circle shadow" 
-                                       style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-camera"></i>
-                                    <input type="file" id="image" name="image" class="d-none" accept="image/*" onchange="previewFile()">
-                                </label>
-                            </div>
-                            <p class="text-muted small mt-2">คลิกไอคอนกล้องเพื่อเลือกรูปโปรไฟล์</p>
-                        </div>
-
-                        <div class="row g-4">
-                            <div class="col-12">
-                                <label for="name" class="form-label fw-bold">ชื่อ-นามสกุล</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-user text-muted"></i></span>
-                                    <input type="text" class="form-control border-start-0 ps-0 @error('name') is-invalid @enderror" 
-                                           id="name" name="name" value="{{ old('name') }}" placeholder="ตัวอย่าง: สมชาย ใจดี" required>
-                                </div>
-                                @error('name')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-12">
-                                <label for="email" class="form-label fw-bold">อีเมลติดต่อ</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-envelope text-muted"></i></span>
-                                    <input type="email" class="form-control border-start-0 ps-0 @error('email') is-invalid @enderror" 
-                                           id="email" name="email" value="{{ old('email') }}" placeholder="student@gmail.com" required>
-                                </div>
-                                @error('email')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-12 mt-5">
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <a href="{{ route('students.index') }}" class="btn btn-light btn-lg rounded-pill px-4 me-md-2">ยกเลิก</a>
-                                    <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm">
-                                        <i class="fas fa-save me-2"></i> บันทึกข้อมูลนักเรียน
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+        <div class="col-lg-10">
+            
+            @if ($errors->any())
+                <div class="alert alert-danger mb-4 shadow-sm" style="border-radius: 15px;">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
-            </div>
+            @endif
+
+            <form action="{{ route('students.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="card form-card">
+                    <div class="form-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="fw-bold mb-1">ลงทะเบียนนักเรียนใหม่</h3>
+                            <p class="mb-0 opacity-75">กรุณากรอกข้อมูลให้ครบถ้วนเพื่อสร้างประวัตินักเรียน</p>
+                        </div>
+                        <i class="fas fa-user-plus fa-3x opacity-25"></i>
+                    </div>
+
+                    <div class="card-body p-5">
+                        <div class="section-title"><i class="fas fa-info"></i> ข้อมูลพื้นฐาน</div>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-4 text-center">
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="preview-container mb-3" id="imagePreview">
+                                        <i class="fas fa-camera fa-2x text-muted"></i>
+                                    </div>
+                                    <input type="file" name="image" id="imageInput" class="d-none" accept="image/*">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="document.getElementById('imageInput').click()">เลือกรูปถ่าย</button>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">รหัสนักเรียน</label>
+                                        <input type="text" name="student_id" class="form-control bg-light" value="{{ $nextId }}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">ระดับชั้น / ห้อง</label>
+                                        <input type="text" name="classroom" class="form-control" placeholder="เช่น ม.6/1" required>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label small fw-bold">ชื่อ-นามสกุล</label>
+                                        <input type="text" name="name" class="form-control" placeholder="ระบุชื่อจริง-นามสกุล" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">ชื่อเล่น</label>
+                                        <input type="text" name="nickname" class="form-control" placeholder="เช่น น้องก้อง">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-5 mb-5">
+                            <div class="col-md-6">
+                                <div class="section-title"><i class="fas fa-user"></i> รายละเอียดส่วนตัว</div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">อีเมลติดต่อ</label>
+                                    <input type="email" name="email" class="form-control" placeholder="student@example.com" required>
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold">เพศ</label>
+                                        <select name="gender" class="form-select" required>
+                                            <option value="male">ชาย</option>
+                                            <option value="female">หญิง</option>
+                                            <option value="other">อื่นๆ</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold">วัน/เดือน/ปีเกิด</label>
+                                        <input type="date" name="birth_date" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">ที่อยู่ปัจจุบัน</label>
+                                    <textarea name="address" class="form-control" rows="2" placeholder="ระบุบ้านเลขที่ ซอย ถนน..." required></textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="section-title"><i class="fas fa-heartbeat"></i> ข้อมูลสุขภาพ</div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">หมู่เลือด</label>
+                                    <select name="blood_group" class="form-select">
+                                        <option value="">ระบุหมู่เลือด</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="O">O</option>
+                                        <option value="AB">AB</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">โรคประจำตัว (ถ้ามี)</label>
+                                    <input type="text" name="congenital_disease" class="form-control" placeholder="ระบุโรคประจำตัว">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">ประวัติการแพ้ (ยา/อาหาร)</label>
+                                    <textarea name="allergy" class="form-control" rows="1" placeholder="เช่น แพ้อาหารทะเล, ไม่มี"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-title"><i class="fas fa-users"></i> ข้อมูลติดต่อผู้ปกครอง</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">ชื่อผู้ปกครอง</label>
+                                <input type="text" name="parent_name" class="form-control" placeholder="ชื่อ-นามสกุล ผู้ปกครอง" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">เบอร์โทรศัพท์ฉุกเฉิน</label>
+                                <input type="text" name="parent_phone" class="form-control" placeholder="08x-xxx-xxxx" required>
+                            </div>
+                        </div>
+
+                        <hr class="my-5 opacity-50">
+
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{{ route('students.index') }}" class="btn btn-light rounded-pill px-4 fw-bold">ยกเลิก</a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold" style="background: #4f46e5; border: none;">บันทึกข้อมูลนักเรียน</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
         </div>
     </div>
 </div>
 
 <script>
-    // ฟังก์ชันสำหรับดูตัวอย่างรูปภาพก่อนอัปโหลด
-    function previewFile() {
-        const preview = document.querySelector('#imagePreview');
-        const file = document.querySelector('input[type=file]').files[0];
-        const reader = new FileReader();
-
-        reader.onloadend = function () {
-            preview.innerHTML = `<img src="${reader.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-        }
-
+    // ระบบพรีวิวรูปภาพก่อนอัปโหลด
+    document.getElementById('imageInput').onchange = evt => {
+        const [file] = document.getElementById('imageInput').files
         if (file) {
-            reader.readAsDataURL(file);
-        } else {
-            preview.innerHTML = '<i class="fas fa-user-tie fa-4x text-muted"></i>';
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
         }
     }
 </script>
-
-<style>
-    .form-control, .input-group-text {
-        padding: 0.75rem 1rem;
-        border-color: #e2e8f0;
-    }
-    .form-control:focus {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.1);
-    }
-    .btn-lg {
-        font-size: 1rem;
-        font-weight: 600;
-    }
-</style>
 @endsection
